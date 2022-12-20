@@ -13,7 +13,7 @@
 #' @param bs.Niter The bootstrap resampling size for constructing the confidence interval.
 #'
 #' @return
-#'     \code{ProbitControl} returns an object of class "SpotIV", which is a list containing the following components:
+#'     \code{Probit.cf} returns an object of class "SpotIV", which is a list containing the following components:
 #'     \item{\code{betaHat}}{The estimate of the model parameter in front of the treatment.}
 #'     \item{\code{beta.sdHat}}{The estimated standard error of betaHat.}
 #'     \item{\code{cateHat}}{The estimate of CATE(d1,d2|w0).}
@@ -36,7 +36,7 @@
 #' d1 <- median(D)+1
 #' d2 <- median(D)
 #' w0 <- c(rep(0,4), 30, 1)
-#' Probit.model <- ProbitControl(Y,D,Z,X,invalid = TRUE,d1 =d1, d2 = d2,w0 = w0)
+#' Probit.model <- Probit.cf(Y,D,Z,X,invalid = TRUE,d1 =d1, d2 = d2,w0 = w0)
 #' summary(Probit.model)
 #'
 #'
@@ -49,8 +49,8 @@
 
 
 
-ProbitControl<- function(Y, D, Z, X=NULL, intercept=TRUE, invalid=TRUE,
-                         d1=NULL, d2=NULL , w0=NULL, bs.Niter=40){
+Probit.cf<- function(Y, D, Z, X=NULL, intercept=TRUE, invalid=TRUE,
+                     d1=NULL, d2=NULL , w0=NULL, bs.Niter=40){
   stopifnot(!missing(Y),(is.numeric(Y) || is.logical(Y)),is.vector(Y)||(is.matrix(Y) || is.data.frame(Y)) && ncol(Y) == 1)
   stopifnot(all(!is.na(Y)))
   if (is.vector(Y)) {
@@ -67,6 +67,9 @@ ProbitControl<- function(Y, D, Z, X=NULL, intercept=TRUE, invalid=TRUE,
   D = as.numeric(D)
 
   # Check Z
+  if (is.data.frame(Z)) {
+    Z <- as.matrix(Z)
+  }
   stopifnot(!missing(Z),(is.numeric(Z) || is.logical(Z)),(is.vector(Z) || is.matrix(Z)))
   stopifnot(all(!is.na(Z)))
   if (is.vector(Z)) {
@@ -77,6 +80,9 @@ ProbitControl<- function(Y, D, Z, X=NULL, intercept=TRUE, invalid=TRUE,
 
   # Check X, if present
   if(!missing(X)) {
+    if (is.data.frame(X)) {
+      X <- as.matrix(X)
+    }
     stopifnot((is.numeric(X) || is.logical(X)),(is.vector(X))||(is.matrix(X) && nrow(X) == nrow(Z)))
     stopifnot(all(!is.na(X)))
   }
@@ -86,10 +92,16 @@ ProbitControl<- function(Y, D, Z, X=NULL, intercept=TRUE, invalid=TRUE,
   stopifnot(is.logical(intercept))
 
   pz<- ncol(Z)
+  if (!is.null(colnames(Z))) {
+    colnameZ <- colnames(Z)
+  } else{
+    colnameZ <- paste("Z",seq(1,pz),sep="")
+  }
   px<-0
   if(!is.null(X)){
     Z<-cbind(Z,X)
     X <- cbind(X)
+
     px<-ncol(X)
   }
   stopifnot(length(w0)==ncol(Z))
@@ -155,15 +167,15 @@ ProbitControl<- function(Y, D, Z, X=NULL, intercept=TRUE, invalid=TRUE,
     for(i in 1:bs.Niter){
       sample.true <- F
       while(sample.true==F)
-        {tryCatch({
-            bootstrap_data<-cbind(Y,D,Z)[sample(n,n,replace=T),];
-            bs.lst[[i]]<-Probit.boot.fun(data=bootstrap_data, pz=pz, d1=d1,d2=d2,
-                            w0=w0, SHat=SHat, invalid=invalid, intercept=intercept);
-            sample.true<-T;
-            },error=function(e){
-            },finally={})
-        }
+      {tryCatch({
+        bootstrap_data<-cbind(Y,D,Z)[sample(n,n,replace=T),];
+        bs.lst[[i]]<-Probit.boot.fun(data=bootstrap_data, pz=pz, d1=d1,d2=d2,
+                                     w0=w0, SHat=SHat, invalid=invalid);
+        sample.true<-T;
+      },error=function(e){
+      },finally={})
       }
+    }
     cace.sd<-sqrt(mean((unlist(lapply(bs.lst, function(x) x[1]))-cace.hat)^2))
     beta.sd<-sqrt(mean((unlist(lapply(bs.lst, function(x) x[2]))-beta.hat)^2))
   }else{ #only compute the sd of beta.hat
@@ -174,7 +186,7 @@ ProbitControl<- function(Y, D, Z, X=NULL, intercept=TRUE, invalid=TRUE,
       {tryCatch({
         bootstrap_data<-cbind(Y,D,Z)[sample(n,n,replace=T),];
         bs.lst[[i]]<-Probit.boot.fun(data=bootstrap_data, pz=pz, d1=d1,d2=d2,
-                                     w0=w0, SHat=SHat, invalid=invalid, intercept=intercept);
+                                     w0=w0, SHat=SHat, invalid=invalid);
         sample.true<-T;
       },error=function(e){
       },finally={})
@@ -183,10 +195,9 @@ ProbitControl<- function(Y, D, Z, X=NULL, intercept=TRUE, invalid=TRUE,
     }
   }
   VHat <- as.numeric(VHat)
-  if (!is.null(colnames(Z))) {
-    SHat = colnames(Z)[SHat]
-    VHat = colnames(Z)[VHat]
-  }
+  SHat <- colnameZ[SHat]
+  VHat <- colnameZ[VHat]
+
   Probit.model <- list(betaHat=beta.hat, beta.sdHat=beta.sd, cateHat=cace.hat, cate.sdHat= cace.sd, SHat=SHat, VHat = VHat, Maj.pass=Maj.pass)
   class(Probit.model) <- "SpotIV"
   return(Probit.model)

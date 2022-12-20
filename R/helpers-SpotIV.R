@@ -6,19 +6,47 @@
 #' @export
 summary.SpotIV <- function(object,...){
   SpotIV <- object
-  cat("\nRelevant Instruments:", SpotIV$SHat, "\n");
-  cat("\nValid Instruments:", SpotIV$VHat,"\n","\nThus, Majority rule",ifelse(SpotIV$Maj.pass,"holds.","does not hold."), "\n");
-  cat(rep("_", 30), "\n")
-  cat("\nBetaHat:",SpotIV$betaHat,"\n");
-  if (!is.null(SpotIV$beta.sdHat)) {
-    cat("\nStandard error of BetaHat:",SpotIV$beta.sdHat,"\n");
-    ci.beta <- c(SpotIV$betaHat-qnorm(0.975)*SpotIV$beta.sdHat,SpotIV$betaHat+qnorm(0.975)*SpotIV$beta.sdHat)
-    cat("\n95% Confidence Interval for Beta: [", ci.beta[1], ",", ci.beta[2], "]", "\n", sep = '');
-  }
-  cat("\nCATEHat:",SpotIV$cateHat,"\n");
-  cat("\nStandard error of CATEHat:",SpotIV$cate.sdHat,"\n");
   ci <- c(SpotIV$cateHat-qnorm(0.975)*SpotIV$cate.sdHat,SpotIV$cateHat+qnorm(0.975)*SpotIV$cate.sdHat)
-  cat("\n95% Confidence Interval for CATE: [", ci[1], ",", ci[2], "]", "\n", sep = '');
+  if (!is.null(SpotIV$beta.sdHat)) {
+    result<-matrix(NA, ncol=5, nrow=2)
+    result <- data.frame(result)
+    colnames(result)<-c("Estimate","Std.Error","CI(2.5%)","CI(97.5%)","Valid IVs")
+    rownames(result)<-c("Beta","CATE")
+    result[,1] <- round(c(SpotIV$betaHat,SpotIV$cateHat),4)
+    result[,2] <- round(c(SpotIV$beta.sdHat,SpotIV$cate.sdHat),4)
+    ci.beta <- c(SpotIV$betaHat-qnorm(0.975)*SpotIV$beta.sdHat,SpotIV$betaHat+qnorm(0.975)*SpotIV$beta.sdHat)
+    result[,3:4] <- round(rbind(ci.beta,ci),4)
+    result[1,5] <- paste(SpotIV$VHat,collapse = " ")
+    result[2,5] <- paste(SpotIV$VHat,collapse = " ")
+  } else{
+    result<-matrix(NA, ncol=5, nrow=1)
+    result <- data.frame(result)
+    colnames(result)<-c("Estimate","Std.Error","CI(2.5%)","CI(97.5%)","Valid IVs")
+    rownames(result)<-c("CATE")
+    result[,1] <- round(SpotIV$cateHat,4)
+    result[,2] <- round(SpotIV$cate.sdHat,4)
+    result[,3:4] <- round(ci,4)
+    result[,5] <- paste(SpotIV$VHat,collapse = " ")
+  }
+  invalidIV <- setdiff(SpotIV$SHat,SpotIV$VHat)
+  print(result,right=F)
+  cat(rep("_", 30), "\n")
+  if (length(invalidIV)==0) {
+    cat("No invalid IV is detected","\n")
+  } else{
+    cat("Detected invalid IVs:",paste(invalidIV,collapse = " "),"\n")
+  }
+  #
+  # cat("\nBetaHat:",SpotIV$betaHat,"\n");
+  # if (!is.null(SpotIV$beta.sdHat)) {
+  #   cat("\nStandard error of BetaHat:",SpotIV$beta.sdHat,"\n");
+  #   ci.beta <- c(SpotIV$betaHat-qnorm(0.975)*SpotIV$beta.sdHat,SpotIV$betaHat+qnorm(0.975)*SpotIV$beta.sdHat)
+  #   cat("\n95% Confidence Interval for Beta: [", ci.beta[1], ",", ci.beta[2], "]", "\n", sep = '');
+  # }
+  # cat("\nCATEHat:",SpotIV$cateHat,"\n");
+  # cat("\nStandard error of CATEHat:",SpotIV$cate.sdHat,"\n");
+  #
+  # cat("\n95% Confidence Interval for CATE: [", ci[1], ",", ci[2], "]", "\n", sep = '');
 }
 
 

@@ -67,6 +67,9 @@ SpotIV<- function(Y, D, Z, X=NULL, intercept=TRUE, invalid=TRUE,  d1, d2 , w0,
   D = as.numeric(D)
 
   # Check Z
+  if (is.data.frame(Z)) {
+    Z <- as.matrix(Z)
+  }
   stopifnot(!missing(Z),(is.numeric(Z) || is.logical(Z)),(is.vector(Z) || is.matrix(Z)))
   stopifnot(all(!is.na(Z)))
   if (is.vector(Z)) {
@@ -77,6 +80,9 @@ SpotIV<- function(Y, D, Z, X=NULL, intercept=TRUE, invalid=TRUE,  d1, d2 , w0,
 
   # Check X, if present
   if(!missing(X)) {
+    if (is.data.frame(X)) {
+      X <- as.matrix(X)
+    }
     stopifnot((is.numeric(X) || is.logical(X)),(is.vector(X))||(is.matrix(X) && nrow(X) == nrow(Z)))
     stopifnot(all(!is.na(X)))
   }
@@ -90,6 +96,11 @@ SpotIV<- function(Y, D, Z, X=NULL, intercept=TRUE, invalid=TRUE,  d1, d2 , w0,
   stopifnot(is.logical(M.est))
 
   pz<- ncol(Z)
+  if (!is.null(colnames(Z))) {
+    colnameZ <- colnames(Z)
+  } else{
+    colnameZ <- paste("Z",seq(1,pz),sep="")
+  }
   px<-0
   if(!is.null(X)){
     Z<-cbind(Z,X)
@@ -166,10 +177,9 @@ SpotIV<- function(Y, D, Z, X=NULL, intercept=TRUE, invalid=TRUE,  d1, d2 , w0,
   }
   cace.sd<-sqrt(mean((unlist(lapply(boot_b, function(x) x[1]))-cace.hat)^2))
   VHat <- as.numeric(VHat)
-  if (!is.null(colnames(Z))) {
-    SHat = colnames(Z)[SHat]
-    VHat = colnames(Z)[VHat]
-  }
+  SHat <- colnameZ[SHat]
+  VHat <- colnameZ[VHat]
+
   SpotIV.model <- list(betaHat = beta.hat, cateHat=cace.hat, cate.sdHat= cace.sd,
                        SHat=SHat, VHat = VHat, Maj.pass=Maj.pass)
   class(SpotIV.model) <- "SpotIV"

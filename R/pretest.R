@@ -80,23 +80,18 @@ pretest <- function(formula,alpha = 0.05){
 #' @export
 summary.pretest<- function(object,...){
   pretest <- object
-  cat(rep("_", 30), "\n")
-  cat("\nHausman Statistic : ",pretest$Hausman.stat,"\n")
-  cat("\nP value = ",pretest$p.value,"\n")
   if (pretest$cf.check) {
-    cat("\nH0 : Augmented instrumental variables from Control function are valid, is not rejected.","\n")
-    cat("\nLevel",pretest$alpha, "Pretest estimator is Control function estimator.","\n")
+    cat("\nLevel",pretest$alpha, "pretest estimator is control function estimator.","\n")
   } else{
-    cat("\nH0 : Augmented instrumental variables from Control function are valid, is rejected.","\n")
-    cat("\nLevel",pretest$alpha, "Pretest estimator is Two Stage Least Square estimator.","\n")
+    cat("\nLevel",pretest$alpha, "pretest estimator is two-stage least square estimator.","\n")
   }
   cat(rep("_", 30), "\n")
-  cat("\nCoefficients of Pretest Estimators:\n\n")
+  cat("Coefficients of the pretest estimators:\n\n")
   coeff <- pretest$coefficients
   std <- sqrt(diag(pretest$vcov))
   t.value <- abs(coeff/std)
   pr.t <- 1-pt(t.value,df = (pretest$n)-1)
   cmat <- cbind(coeff,std,t.value,pr.t)
-  colnames(cmat) <- c("Estimate", "Std.Err", "t value", "Pr(>|t|)")
+  colnames(cmat) <- c("Estimate", "Std.Error", "t value", "Pr(>|t|)")
   printCoefmat(cmat, digits = max(3L, getOption("digits") - 3L))
 }

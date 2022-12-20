@@ -232,20 +232,23 @@ cf <- function(formula,d1 = NULL,d2 = NULL){
 summary.cf<- function(object,...){
   cf <- object
   cat(rep("_", 30), "\n")
-  cat("\nCoefficients of Control Function Estimators:\n\n")
+  cat("Coefficients of control function estimators:\n\n")
   coeff <- cf$coefficients
   std <- sqrt(diag(cf$vcov))
   t.value <- abs(coeff/std)
   pr.t <- 1-pt(t.value,df = (cf$n)-1)
   cmat <- cbind(coeff,std,t.value,pr.t)
-  colnames(cmat) <- c("Estimate", "Std.Err", "t value", "Pr(>|t|)")
+  colnames(cmat) <- c("Estimate", "Std.Error", "t value", "Pr(>|t|)")
   printCoefmat(cmat, digits = max(3L, getOption("digits") - 3L))
-  cat(rep("_", 30), "\n")
-  if (!is.null(cf$d2)&!is.null(cf$d1)) {
-    cat("\nThe estimate causal effect when changing treatment from",cf$d1,"to",cf$d2,": ",cf$CausalEffect,"\n" )
-    cat("\nStandard error of the estimate of the causal effect:",cf$CausalEffect.sd,"\n")
-    cat("\n95% confidence interval for the causal effect: [",cf$CausalEffect.ci[1],",",cf$CausalEffect.ci[2],"]\n",sep = "")
-  }
+  # cat(rep("_", 30), "\n")
+  # result<-matrix(NA, ncol=4, nrow=1)
+  # result <- data.frame(result)
+  # colnames(result)<-c("Estimate","Std.Error","CI(2.5%)","CI(97.5%)")
+  # rownames(result) <- paste("Causal Effect from",round(cf$d1,4),"to",round(cf$d2,4))
+  # result[,1] <- round(cf$CausalEffect,4)
+  # result[,2] <- round(cf$CausalEffect.sd,4)
+  # result[,3:4] <- round(cf$CausalEffect.ci,4)
+  # print(result,right=F)
 }
 
 

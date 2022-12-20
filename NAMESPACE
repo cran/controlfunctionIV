@@ -3,7 +3,7 @@
 S3method(summary,SpotIV)
 S3method(summary,cf)
 S3method(summary,pretest)
-export(ProbitControl)
+export(Probit.cf)
 export(SpotIV)
 export(cf)
 export(pretest)

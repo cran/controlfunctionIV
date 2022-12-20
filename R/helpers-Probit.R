@@ -1,4 +1,4 @@
-Probit.boot.fun<-function(data, pz,d1=NULL, d2=NULL,w0=NULL, SHat, invalid=invalid, intercept=intercept){
+Probit.boot.fun<-function(data, pz,d1=NULL, d2=NULL,w0=NULL, SHat, invalid=TRUE){
   Y<-data[,1]
   D<- data[,2]
   Z<-data[,-c(1,2)]
@@ -32,7 +32,7 @@ Probit.boot.fun<-function(data, pz,d1=NULL, d2=NULL,w0=NULL, SHat, invalid=inval
     cace.bs = mean(pnorm(as.numeric(d1*beta.bs+w0%*%pi.bs) + v.bs*kappa.bs))-
       mean(pnorm(as.numeric(d2*beta.bs+w0%*%pi.bs) + v.bs*kappa.bs))
   }
-  c(cace.bs, beta.bs)
+  return(c(cace.bs, beta.bs))
 }
 
 Majority.test <- function(n, ITT_Y,ITT_D, Cov.gGam, tuning = 2.01) {
